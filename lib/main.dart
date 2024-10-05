@@ -46,9 +46,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Vguard'),
-      ),
+
       body: _screens[_currentIndex],  // Display the selected screen
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.black,  // Set background color to black

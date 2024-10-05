@@ -1,12 +1,13 @@
 import 'dart:async';
+import 'dart:math';
 
 class MockOBDService {
   // A map to hold fault codes categorized by affected parts
   final Map<String, List<String>> faultCodeMap = {
-    'Engine': ['P0300', 'P0420', 'P0455'], // Fault codes related to the engine
-    'Body': ['B0010', 'B0020', 'B0030'],   // Fault codes related to the body
-    'Chassis': ['C0001', 'C0002', 'C0003'], // Fault codes related to the chassis
-    'Network': ['U0001', 'U0002', 'U0003'], // Fault codes related to the network
+    'Engine': ['P0300', 'P0420', 'P0455'],
+    'Body': ['B0010', 'B0020', 'B0030'],
+    'Chassis': ['C0001', 'C0002', 'C0003'],
+    'Network': ['U0001', 'U0002', 'U0003'],
   };
 
   // A map to hold descriptions for the fault codes
@@ -25,29 +26,44 @@ class MockOBDService {
     'U0003': 'communication error in vehicle network',
   };
 
-  int currentFaultIndex = 0; // Index to track the current fault code
-  String currentAffectedPart = 'Engine'; // Default affected part
+  List<String> allFaultCodes = []; // List to hold all fault codes
+  Random _random = Random(); // Random number generator
   Timer? _timer; // Timer for periodic updates
 
-void startMockMode(Function(String, String) onFaultCodeChange) {
+  MockOBDService() {
+    // Populate the list of all fault codes
+    allFaultCodes = faultCodeDescriptions.keys.toList();
+  }
+
+  void startMockMode(Function(List<Map<String, String>>) onFaultCodesChange) {
     _timer = Timer.periodic(Duration(seconds: 2), (timer) {
-        // Update the affected part based on the current index
-        List<String> parts = faultCodeMap.keys.toList();
-        currentAffectedPart = parts[currentFaultIndex % parts.length];
+      // Generate between 1 to 3 fault codes
+      int numberOfFaults = _random.nextInt(3) + 1;
+      List<Map<String, String>> faultCodes = [];
 
-        // Get the corresponding fault codes for the affected part
-        List<String> faultCodes = faultCodeMap[currentAffectedPart]!;
+      for (int i = 0; i < numberOfFaults; i++) {
+        // Select a random fault code from all available codes
+        String currentFaultCode = allFaultCodes[_random.nextInt(allFaultCodes.length)];
+        String faultDescription = faultCodeDescriptions[currentFaultCode] ?? 'unknown issue';
 
-        // Loop through fault codes
-        String currentFaultCode = faultCodes[currentFaultIndex % faultCodes.length];
-        String faultDescription = faultCodeDescriptions[currentFaultCode] ?? 'unknown issue'; // Ensure you have this map defined
+        // Determine the affected part for the current fault code based on its key
+        String affectedPart = faultCodeMap.entries
+            .firstWhere((entry) => entry.value.contains(currentFaultCode))
+            .key;
 
-        currentFaultIndex++;
+        // Add the fault code information to the list
+        faultCodes.add({
+          'affectedPart': affectedPart,
+          'faultCode': currentFaultCode,
+          'description': faultDescription,
+        });
+      }
 
-        // Notify the change
-        onFaultCodeChange(currentAffectedPart, '$currentFaultCode - $faultDescription');
+      // Notify the change
+      onFaultCodesChange(faultCodes);
     });
-}
+  }
+
   // Method to stop the mock mode
   void stopMockMode() {
     _timer?.cancel(); // Cancel the timer if it's running

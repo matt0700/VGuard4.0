@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '/services/mock_obd_service.dart'; // Import your mock service
 
 class CarIndicator extends StatefulWidget {
   final String affectedPart;
   final Color primaryColor;
   final Color accentColor;
+  final bool mockMode;
 
   CarIndicator({
     required this.affectedPart,
     this.primaryColor = Colors.white,
     this.accentColor = Colors.red,
+    this.mockMode = false,
   });
 
   @override
@@ -16,22 +19,38 @@ class CarIndicator extends StatefulWidget {
 }
 
 class _CarIndicatorState extends State<CarIndicator> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  late MockOBDService _mockService;
+  String _currentAffectedPart = '';
+  String _currentFaultCode = '';
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+    _currentAffectedPart = widget.affectedPart;
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
       vsync: this,
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.5, end: 1).animate(_controller);
+
+    if (widget.mockMode) {
+      _mockService = MockOBDService();
+      _mockService.startMockMode((affectedPart, faultCode) {
+        setState(() {
+          _currentAffectedPart = affectedPart; // Update the affected part
+          _currentFaultCode = faultCode; // Update the fault code
+        });
+      });
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.mockMode) {
+      _mockService.stopMockMode();
+    }
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -48,54 +67,29 @@ class _CarIndicatorState extends State<CarIndicator> with SingleTickerProviderSt
             SizedBox(
               width: width,
               height: height,
-              child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return CustomPaint(
-                    size: Size(width, height),
-                    painter: ModernCarPainter(
-                      affectedPart: widget.affectedPart,
-                      animationValue: _animation.value,
-                      primaryColor: widget.primaryColor,
-                      accentColor: widget.accentColor,
-                    ),
-                  );
-                },
+              child: CustomPaint(
+                size: Size(width, height),
+                painter: ModernCarPainter(
+                  affectedPart: _currentAffectedPart,
+                  animationValue: _animationController.value, // Pass animation value here
+                  primaryColor: widget.primaryColor,
+                  accentColor: widget.accentColor,
+                ),
               ),
             ),
             SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: ['Body', 'Engine', 'Chassis', 'Network'].map((part) {
-                return _buildLegendItem(part);
-              }).toList(),
-            ),
+            Text('Affected Part: $_currentAffectedPart'),
+            Text('Fault Code: $_currentFaultCode'),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildLegendItem(String part) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          color: part == widget.affectedPart ? widget.accentColor : widget.primaryColor,
-        ),
-        SizedBox(width: 5),
-        Text(part, style: TextStyle(color: widget.primaryColor)),
-      ],
     );
   }
 }
 
 class ModernCarPainter extends CustomPainter {
   final String affectedPart;
-  final double animationValue;
+  final double animationValue; // Keep this for any animation you want to implement
   final Color primaryColor;
   final Color accentColor;
 
@@ -108,39 +102,57 @@ class ModernCarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = primaryColor.withOpacity(animationValue);
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Car body dimensions
+    const double bodyWidth = 200;
+    const double bodyHeight = 100;
+    const double roofHeight = 40;
+    const double wheelRadius = 15;
+
+    // Calculate positions
+    double bodyX = (size.width - bodyWidth) / 2;
+    double bodyY = size.height - bodyHeight - 20;
 
     // Draw car body
-    if (affectedPart == 'Body') {
-      paint.color = accentColor.withOpacity(animationValue);
-    }
-    canvas.drawRect(Rect.fromLTWH(50, 50, 200, 100), paint);
+    paint.color = affectedPart == 'Body' ? accentColor : primaryColor;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(bodyX, bodyY, bodyWidth, bodyHeight),
+        Radius.circular(10),
+      ),
+      paint,
+    );
 
-    // Draw car engine
-    if (affectedPart == 'Engine') {
-      paint.color = accentColor.withOpacity(animationValue);
-    } else {
-      paint.color = primaryColor.withOpacity(animationValue);
-    }
-    canvas.drawRect(Rect.fromLTWH(100, 60, 100, 40), paint);
+    // Draw roof
+    paint.color = affectedPart == 'Network' ? accentColor : primaryColor;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(bodyX + 20, bodyY - roofHeight, bodyWidth - 40, roofHeight),
+        Radius.circular(10),
+      ),
+      paint,
+    );
 
-    // Draw car chassis
-    if (affectedPart == 'Chassis') {
-      paint.color = accentColor.withOpacity(animationValue);
-    } else {
-      paint.color = primaryColor.withOpacity(animationValue);
-    }
-    canvas.drawRect(Rect.fromLTWH(50, 150, 200, 30), paint);
+    // Draw windows
+    paint.color = Colors.lightBlue.withOpacity(0.5);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(bodyX + 25, bodyY - roofHeight + 5, bodyWidth - 50, roofHeight - 10),
+        Radius.circular(5),
+      ),
+      paint,
+    );
 
-    // Draw car network (as an example)
-    if (affectedPart == 'Network') {
-      paint.color = accentColor.withOpacity(animationValue);
-    } else {
-      paint.color = primaryColor.withOpacity(animationValue);
-    }
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 20, paint);
+    // Draw wheels
+    paint.color = primaryColor;
+    canvas.drawCircle(Offset(bodyX + 30, bodyY + bodyHeight), wheelRadius, paint);
+    canvas.drawCircle(Offset(bodyX + 170, bodyY + bodyHeight), wheelRadius, paint);
+
+    // Draw car lights
+    paint.color = affectedPart == 'Engine' ? accentColor : Colors.yellow;
+    canvas.drawCircle(Offset(bodyX + 10, bodyY + 20), 5, paint); // Left light
+    canvas.drawCircle(Offset(bodyX + bodyWidth - 10, bodyY + 20), 5, paint); // Right light
   }
 
   @override

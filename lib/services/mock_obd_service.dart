@@ -27,7 +27,7 @@ class MockOBDService {
   };
 
   List<String> allFaultCodes = []; // List to hold all fault codes
-  Random _random = Random(); // Random number generator
+  final Random _random = Random(); // Random number generator
   Timer? _timer; // Timer for periodic updates
 
   MockOBDService() {
@@ -36,7 +36,7 @@ class MockOBDService {
   }
 
   void startMockMode(Function(List<Map<String, String>>) onFaultCodesChange) {
-    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       // Generate between 1 to 3 fault codes
       int numberOfFaults = _random.nextInt(3) + 1;
       List<Map<String, String>> faultCodes = [];

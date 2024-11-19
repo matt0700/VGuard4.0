@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -13,7 +15,7 @@ class HomeScreen extends StatelessWidget {
             Container(
               width: 150, // Set the width of the circular background
               height: 150, // Set the height of the circular background
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.blue, // Background color
                 shape: BoxShape.circle, // Make it circular
               ),
@@ -24,8 +26,8 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 20), // Space between logo and text
-            Text(
+            const SizedBox(height: 20), // Space between logo and text
+            const Text(
               'Home Screen',
               style: TextStyle(fontSize: 24),
             ),

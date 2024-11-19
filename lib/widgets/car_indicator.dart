@@ -6,7 +6,7 @@ class CarIndicator extends StatefulWidget {
   final Color accentColor;
   final bool mockMode;
 
-  CarIndicator({
+  const CarIndicator({super.key, 
     this.primaryColor = Colors.red, // Primary color is red
     this.accentColor = Colors.redAccent, // Accent color can be a lighter red
     this.mockMode = false,
@@ -54,7 +54,7 @@ class _CarIndicatorState extends State<CarIndicator>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final aspectRatio = 300 / 200;
+        const aspectRatio = 300 / 200;
         final width = constraints.maxWidth;
         final height = width / aspectRatio;
 
@@ -62,7 +62,7 @@ class _CarIndicatorState extends State<CarIndicator>
           decoration: BoxDecoration(
             color: Colors.grey[200],
             borderRadius: BorderRadius.circular(15),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 10,
@@ -75,7 +75,7 @@ class _CarIndicatorState extends State<CarIndicator>
             children: [
               // Move the legend to the top
               _buildLegend(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               SizedBox(
                 width: width,
                 height: height,
@@ -91,7 +91,7 @@ class _CarIndicatorState extends State<CarIndicator>
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Expanded(
                 child: ListView.builder(
                   itemCount: _currentFaultCodes.length,
@@ -100,7 +100,7 @@ class _CarIndicatorState extends State<CarIndicator>
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
                             Icon(Icons.warning, color: Colors.red),
                             SizedBox(width: 8),
@@ -113,17 +113,17 @@ class _CarIndicatorState extends State<CarIndicator>
                             ),
                           ],
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
                           faultCode['affectedPart']!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.blueAccent,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Row(
+                        const SizedBox(height: 10),
+                        const Row(
                           children: [
                             Icon(Icons.info, color: Colors.blue),
                             SizedBox(width: 8),
@@ -136,16 +136,16 @@ class _CarIndicatorState extends State<CarIndicator>
                             ),
                           ],
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Text(
                           '${faultCode['faultCode']} - ${faultCode['description']}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.redAccent,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        SizedBox(height: 15),
+                        const SizedBox(height: 15),
                       ],
                     );
                   },
@@ -178,7 +178,7 @@ class _CarIndicatorState extends State<CarIndicator>
           height: 16,
           color: color,
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(text),
       ],
     );
